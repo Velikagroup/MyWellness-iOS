@@ -1,9 +1,6 @@
 import SwiftUI
 import StoreKit
 
-// MARK: - PostQuizPaywallView
-// Mirrors /enpostquizsubscription from the web app
-
 struct PostQuizPaywallView: View {
     @EnvironmentObject var store: StoreKitService
     @Environment(\.dismiss) var dismiss
@@ -22,61 +19,53 @@ struct PostQuizPaywallView: View {
             Color(hex: "FAFAFA").ignoresSafeArea()
 
             if showReminder {
-                ReminderScreen(onContinue: {
-                    Task { await startPurchase() }
-                }, isPurchasing: isPurchasing)
+                ReminderScreen(
+                    onContinue: { Task { await startPurchase() } },
+                    isPurchasing: isPurchasing
+                )
             } else {
-                mainContent
+                VStack(spacing: 0) {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 28) {
+                            headerSection
+                            if selectedPlan == .annual {
+                                trialTimeline
+                            } else {
+                                featureList
+                            }
+                            Color.clear.frame(height: 160)
+                        }
+                        .padding(.top, 24)
+                    }
+                    bottomBar
+                }
             }
         }
         .alert("Errore", isPresented: $showError) {
             Button("OK", role: .cancel) {}
-        } message: { Text(errorMessage) }
-        .task { if store.products.isEmpty { await store.loadProducts() } }
-    }
-
-    // MARK: - Main Content
-
-    var mainContent: some View {
-        VStack(spacing: 0) {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 32) {
-                    // Header
-                    headerSection
-
-                    // Plan-dependent content
-                    if selectedPlan == .annual {
-                        trialTimeline
-                    } else {
-                        featureList
-                    }
-
-                    // Testimonials
-                    testimonialsSection
-
-                    // FAQ
-                    faqSection
-
-                    // Bottom spacer for fixed CTA
-                    Color.clear.frame(height: 160)
-                }
-                .padding(.top, 24)
-            }
-
-            // Fixed bottom plan selector + CTA
-            bottomBar
+        } message: {
+            Text(errorMessage)
+        }
+        .task {
+            if store.products.isEmpty { await store.loadProducts() }
         }
     }
 
     // MARK: - Header
 
     var headerSection: some View {
-        VStack(spacing: 8) {
-            Text(selectedPlan == .annual ? "Start Your 3-Day Free Trial" : "Unlock Premium")
-                .font(.system(size: 28, weight: .bold))
+        VStack(spacing: 12) {
+            Image(systemName: "crown.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(
+                    LinearGradient(colors: [.yellow, .orange], startPoint: .top, endPoint: .bottom)
+                )
+
+            Text(selectedPlan == .annual ? "Inizia il tuo Trial Gratuito" : "Passa a Premium")
+                .font(.system(size: 26, weight: .bold))
                 .foregroundColor(Color(hex: "111111"))
                 .multilineTextAlignment(.center)
-                .animation(.easeInOut(duration: 0.25), value: selectedPlan)
+                .animation(.easeInOut(duration: 0.2), value: selectedPlan)
 
             Text("Nessun vincolo · Cancella quando vuoi")
                 .font(.subheadline)
@@ -88,7 +77,7 @@ struct PostQuizPaywallView: View {
     // MARK: - Trial Timeline (Annual)
 
     var trialTimeline: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 20) {
             HStack(alignment: .top, spacing: 0) {
                 ForEach(timelineSteps.indices, id: \.self) { i in
                     TimelineStep(
@@ -108,7 +97,6 @@ struct PostQuizPaywallView: View {
                 }
             }
 
-            // No payment badge
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.seal.fill")
                     .foregroundColor(Color(hex: "F59E0B"))
@@ -124,66 +112,27 @@ struct PostQuizPaywallView: View {
 
     var timelineSteps: [TimelineStepData] {
         let date3 = Calendar.current.date(byAdding: .day, value: 3, to: Date()) ?? Date()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d"
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MMM d"
         return [
-            TimelineStepData(icon: "lock.fill", label: "Oggi", detail: "Sblocca tutte le funzionalità come scan calorie AI e altro.", color: Color(hex: "F59E0B")),
-            TimelineStepData(icon: "bell.fill", label: "Giorno 2", detail: "Ti invieremo un promemoria che il tuo trial sta per finire.", color: Color(hex: "F59E0B")),
-            TimelineStepData(icon: "crown.fill", label: "Giorno 3", detail: "Sarai addebitato il \(formatter.string(from: date3)) se non cancelli prima.", color: Color(hex: "111111"))
+            TimelineStepData(icon: "lock.fill",  label: "Oggi",     detail: "Sblocca tutte le funzionalita premium.",              color: Color(hex: "F59E0B")),
+            TimelineStepData(icon: "bell.fill",  label: "Giorno 2", detail: "Ti avvisiamo prima della fine del trial.",             color: Color(hex: "F59E0B")),
+            TimelineStepData(icon: "crown.fill", label: "Giorno 3", detail: "Addebito il \(fmt.string(from: date3)) se non cancelli.", color: Color(hex: "111111"))
         ]
     }
 
     // MARK: - Feature List (Monthly)
 
     var featureList: some View {
-        VStack(spacing: 16) {
-            PaywallFeatureRow(emoji: "🧬", title: "Età biologica del tuo corpo", subtitle: "Scopri la tua vera età biologica")
-            PaywallFeatureRow(emoji: "📊", title: "Percentuale di massa grassa", subtitle: "Monitoraggio preciso della composizione corporea")
-            PaywallFeatureRow(emoji: "💪", title: "Scoperta del tuo somatotipo", subtitle: "Piano personalizzato sul tuo corpo")
-            PaywallFeatureRow(emoji: "📸", title: "Scan cibi ed etichette", subtitle: "Traccia calorie con una foto")
-            PaywallFeatureRow(emoji: "🥗", title: "Piani nutrizionali AI", subtitle: "7 giorni di pasti personalizzati ogni settimana")
-            PaywallFeatureRow(emoji: "🏋️", title: "Programmi di allenamento", subtitle: "Workout personalizzati sul tuo livello")
-            PaywallFeatureRow(emoji: "🛒", title: "Lista della spesa intelligente", subtitle: "Generata automaticamente dal tuo piano")
+        VStack(spacing: 14) {
+            PaywallFeatureRow(emoji: "🥗", title: "Piano nutrizionale AI",  subtitle: "7 giorni di pasti personalizzati ogni settimana")
+            PaywallFeatureRow(emoji: "🏋️", title: "Programma workout",       subtitle: "Workout personalizzati sul tuo livello")
+            PaywallFeatureRow(emoji: "🧬", title: "Body Scan AI",            subtitle: "Analisi composizione corporea con foto")
+            PaywallFeatureRow(emoji: "📊", title: "Tracking progressi",      subtitle: "Peso, calorie, macro in tempo reale")
+            PaywallFeatureRow(emoji: "🛒", title: "Lista della spesa",       subtitle: "Generata automaticamente dal piano")
+            PaywallFeatureRow(emoji: "📸", title: "Analisi pasti con foto",  subtitle: "Scatta una foto e calcola le calorie")
         }
         .padding(.horizontal, 24)
-    }
-
-    // MARK: - Testimonials
-
-    var testimonialsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Cosa dicono i nostri utenti")
-                .font(.title2.bold())
-                .foregroundColor(Color(hex: "111111"))
-                .padding(.horizontal, 24)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 14) {
-                    ForEach(testimonials, id: \.name) { t in
-                        TestimonialCard(testimonial: t)
-                    }
-                }
-                .padding(.horizontal, 24)
-            }
-        }
-    }
-
-    // MARK: - FAQ
-
-    var faqSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Domande frequenti")
-                .font(.title2.bold())
-                .foregroundColor(Color(hex: "111111"))
-                .padding(.horizontal, 24)
-
-            VStack(spacing: 8) {
-                ForEach(faqs, id: \.question) { faq in
-                    FAQRow(faq: faq)
-                }
-            }
-            .padding(.horizontal, 24)
-        }
     }
 
     // MARK: - Bottom Bar
@@ -194,20 +143,18 @@ struct PostQuizPaywallView: View {
             VStack(spacing: 12) {
                 // Plan cards
                 HStack(spacing: 10) {
-                    // Monthly
                     PlanSelectorCard(
                         label: "Mensile",
-                        price: store.monthlyProduct?.displayPrice ?? "€9.99",
+                        price: store.monthlyProduct?.displayPrice ?? "9.99",
                         perMonth: nil,
                         badge: nil,
                         isSelected: selectedPlan == .monthly
                     ) { selectedPlan = .monthly }
 
-                    // Annual
                     PlanSelectorCard(
                         label: "Annuale",
-                        price: "€4.16/mo",
-                        perMonth: store.annualProduct?.displayPrice ?? "€49.99",
+                        price: "4.16/mese",
+                        perMonth: store.annualProduct?.displayPrice ?? "49.99",
                         badge: "3 Giorni Gratis",
                         isSelected: selectedPlan == .annual
                     ) { selectedPlan = .annual }
@@ -215,17 +162,14 @@ struct PostQuizPaywallView: View {
 
                 // CTA
                 Button {
-                    if selectedPlan == .annual {
-                        showReminder = true
-                    } else {
-                        Task { await startPurchase() }
-                    }
+                    if selectedPlan == .annual { showReminder = true }
+                    else { Task { await startPurchase() } }
                 } label: {
                     Group {
                         if isPurchasing {
                             ProgressView().tint(.white)
                         } else {
-                            Text(selectedPlan == .annual ? "Inizia il Trial Gratuito" : "Inizia il Tuo Percorso")
+                            Text(selectedPlan == .annual ? "Inizia il Trial Gratuito" : "Inizia il tuo Percorso")
                                 .font(.body.bold())
                                 .foregroundColor(.white)
                         }
@@ -237,12 +181,15 @@ struct PostQuizPaywallView: View {
                 }
                 .disabled(isPurchasing)
 
-                // Sub-text
-                Text(selectedPlan == .annual
-                     ? "3 giorni gratis, poi €49.99/anno"
-                     : "€9.99/mese, cancella quando vuoi")
+                Text(selectedPlan == .annual ? "3 giorni gratis, poi 49.99/anno" : "9.99/mese, cancella quando vuoi")
                     .font(.caption)
                     .foregroundColor(Color(hex: "888888"))
+
+                Button("Ripristina acquisti") {
+                    Task { await store.restorePurchases() }
+                }
+                .font(.caption)
+                .foregroundColor(Color(hex: "AAAAAA"))
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
@@ -253,11 +200,7 @@ struct PostQuizPaywallView: View {
     // MARK: - Purchase
 
     private func startPurchase() async {
-        let product: Product?
-        switch selectedPlan {
-        case .monthly: product = store.monthlyProduct
-        case .annual:  product = store.annualProduct
-        }
+        let product = selectedPlan == .monthly ? store.monthlyProduct : store.annualProduct
         guard let product else { return }
         isPurchasing = true
         defer { isPurchasing = false }
@@ -297,12 +240,11 @@ struct ReminderScreen: View {
                     .offset(x: 4, y: -4)
             }
 
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 Text("Nessun Pagamento\nRichiesto Ora")
                     .font(.title.bold())
                     .foregroundColor(Color(hex: "111111"))
                     .multilineTextAlignment(.center)
-
                 Text("Il tuo trial di 3 giorni inizia oggi.\nSarai avvisato prima che termini.")
                     .font(.subheadline)
                     .foregroundColor(Color(hex: "666666"))
@@ -330,6 +272,7 @@ struct ReminderScreen: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 40)
         }
+        .background(Color(hex: "FAFAFA").ignoresSafeArea())
     }
 }
 
@@ -370,9 +313,7 @@ struct TimelineStep: View {
         }
         .frame(maxWidth: .infinity)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                appeared = isActive
-            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { appeared = isActive }
         }
         .onChange(of: isActive) { _, newValue in appeared = newValue }
     }
@@ -381,27 +322,19 @@ struct TimelineStep: View {
 struct TimelineConnector: View {
     let animated: Bool
     let delay: Double
-    @State private var progress: CGFloat = 0
+    @State private var active = false
 
     var body: some View {
         Rectangle()
-            .fill(
-                LinearGradient(
-                    colors: [Color(hex: "F59E0B"), Color(hex: "E5E7EB")],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .frame(width: progress == 1 ? .infinity : 2, height: 3)
-            .animation(.easeInOut(duration: 0.5).delay(delay), value: progress)
+            .fill(active ? Color(hex: "F59E0B") : Color(hex: "E5E7EB"))
+            .frame(height: 3)
             .frame(maxWidth: .infinity)
-            .padding(.bottom, 50)
+            .padding(.bottom, 60)
+            .animation(.easeInOut(duration: 0.5).delay(delay), value: active)
             .onAppear {
-                if animated {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) { progress = 1 }
-                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { active = animated }
             }
-            .onChange(of: animated) { _, newValue in if newValue { progress = 1 } }
+            .onChange(of: animated) { _, newValue in if newValue { active = true } }
     }
 }
 
@@ -421,8 +354,12 @@ struct PaywallFeatureRow: View {
                 Text(emoji).font(.body)
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.subheadline.bold()).foregroundColor(Color(hex: "111111"))
-                Text(subtitle).font(.caption).foregroundColor(Color(hex: "666666"))
+                Text(title)
+                    .font(.subheadline.bold())
+                    .foregroundColor(Color(hex: "111111"))
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(Color(hex: "666666"))
             }
             Spacer()
             Image(systemName: "checkmark.circle.fill")
@@ -455,7 +392,6 @@ struct PlanSelectorCard: View {
                             .foregroundColor(Color(hex: "111111"))
                     }
                 }
-
                 if let badge {
                     Text(badge)
                         .font(.caption2.bold())
@@ -464,11 +400,9 @@ struct PlanSelectorCard: View {
                         .padding(.vertical, 3)
                         .background(Capsule().fill(Color(hex: "111111")))
                 }
-
                 Text(price)
                     .font(.headline.bold())
                     .foregroundColor(Color(hex: "111111"))
-
                 if let perMonth {
                     Text(perMonth + "/anno")
                         .font(.caption)
@@ -492,143 +426,4 @@ struct PlanSelectorCard: View {
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
-}
-
-// MARK: - Testimonial Card
-
-struct TestimonialData {
-    let name: String
-    let role: String
-    let text: String
-    let initials: String
-}
-
-struct TestimonialCard: View {
-    let testimonial: TestimonialData
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Stars
-            HStack(spacing: 2) {
-                ForEach(0..<5, id: \.self) { _ in
-                    Image(systemName: "star.fill")
-                        .font(.caption2)
-                        .foregroundColor(Color(hex: "F59E0B"))
-                }
-            }
-
-            Text("\"" + testimonial.text + "\"")
-                .font(.subheadline)
-                .foregroundColor(Color(hex: "333333"))
-                .fixedSize(horizontal: false, vertical: true)
-                .lineSpacing(4)
-
-            HStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(Color(hex: "111111"))
-                        .frame(width: 36, height: 36)
-                    Text(testimonial.initials)
-                        .font(.caption.bold())
-                        .foregroundColor(.white)
-                }
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(testimonial.name).font(.caption.bold()).foregroundColor(Color(hex: "111111"))
-                    Text(testimonial.role).font(.caption2).foregroundColor(Color(hex: "888888"))
-                }
-            }
-        }
-        .padding(16)
-        .frame(width: 260)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
-        )
-    }
-}
-
-// MARK: - FAQ Row
-
-struct FAQData {
-    let question: String
-    let answer: String
-}
-
-struct FAQRow: View {
-    let faq: FAQData
-    @State private var isExpanded = false
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() }
-            } label: {
-                HStack {
-                    Text(faq.question)
-                        .font(.subheadline.bold())
-                        .foregroundColor(Color(hex: "111111"))
-                        .multilineTextAlignment(.leading)
-                    Spacer(minLength: 12)
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption.bold())
-                        .foregroundColor(Color(hex: "888888"))
-                }
-                .padding(14)
-            }
-            .buttonStyle(.plain)
-
-            if isExpanded {
-                Text(faq.answer)
-                    .font(.subheadline)
-                    .foregroundColor(Color(hex: "555555"))
-                    .lineSpacing(4)
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 14)
-            }
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
-        )
-    }
-}
-
-// MARK: - Data
-
-extension PostQuizPaywallView {
-    var testimonials: [TestimonialData] { [
-        TestimonialData(name: "Maria Santos",   role: "Studentessa Universitaria",
-            text: "Con il budget da studentessa non potevo permettermi un nutrizionista. MyWellness mi ha creato un piano alimentare economico e completo.", initials: "MS"),
-        TestimonialData(name: "Luca Moretti",   role: "Personal Trainer",
-            text: "L'analisi fotografica AI è impressionante — rileva progressi che io stesso fatico a notare.", initials: "LM"),
-        TestimonialData(name: "Anna Bianchi",   role: "Insegnante",
-            text: "In 6 mesi sono tornata a 58kg. L'app ha capito che avevo poco tempo con il neonato.", initials: "AB"),
-        TestimonialData(name: "Thomas Weber",   role: "Software Engineer",
-            text: "L'approccio scientifico mi ha conquistato. Dashboard con BMR, massa grassa, proiezioni peso...", initials: "TW"),
-        TestimonialData(name: "Francesca M.",   role: "Farmacista",
-            text: "Soffro di ipotiroidismo e perdere peso è sempre stato un incubo. -12kg in 6 mesi senza soffrire.", initials: "FM"),
-        TestimonialData(name: "Luca Colombo",   role: "CEO Startup Tech",
-            text: "Ho perso 14kg in 4 mesi e i miei livelli di energia sono triplicati.", initials: "LC"),
-    ] }
-
-    var faqs: [FAQData] { [
-        FAQData(question: "Posso cancellare in qualsiasi momento?",
-                answer: "Sì, puoi cancellare quando vuoi senza vincoli o penali. Il servizio resterà attivo fino alla fine del periodo già pagato."),
-        FAQData(question: "Cosa include il piano MyWellness?",
-                answer: "Il piano include TUTTE le funzionalità: piani nutrizionali e di allenamento personalizzati, generazioni illimitate, analisi AI e Body Scan."),
-        FAQData(question: "Che differenza c'è tra piano mensile e annuale?",
-                answer: "Entrambi includono le stesse funzionalità. Il piano annuale ti fa risparmiare il 58% (€4,16/mese invece di €9,99/mese)."),
-        FAQData(question: "Come funziona il trial gratuito?",
-                answer: "Hai 3 giorni completamente gratuiti. Nessun addebito adesso. Ti avvisiamo il giorno prima che il trial finisca."),
-        FAQData(question: "Come funziona l'analisi AI dei pasti?",
-                answer: "Fotografi il tuo pasto e la nostra AI analizza automaticamente calorie e macronutrienti consumati."),
-        FAQData(question: "Come funziona il Body Scan AI?",
-                answer: "Carichi foto corpo in più angolazioni e l'AI analizza composizione corporea, massa grassa e ti dà raccomandazioni personalizzate."),
-        FAQData(question: "I piani sono personalizzati o generici?",
-                answer: "Tutti i piani sono 100% personalizzati in base al tuo profilo, obiettivi, intolleranze e preferenze."),
-        FAQData(question: "Cosa succede ai miei dati se cancello?",
-                answer: "I tuoi dati rimangono al sicuro per 90 giorni. Dopo vengono eliminati per rispettare la privacy."),
-    ] }
 }
