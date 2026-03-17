@@ -33,7 +33,7 @@ class StoreKitService: ObservableObject {
         }
     }
 
-    nonisolated func cancelUpdates() {
+    func cancelUpdates() {
         updatesTask?.cancel()
     }
 

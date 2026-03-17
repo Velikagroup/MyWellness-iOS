@@ -39,7 +39,7 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut, value: authViewModel.isAuthenticated)
-        .onChange(of: authViewModel.isAuthenticated) { isAuth in
+        .onChange(of: authViewModel.isAuthenticated) { _, isAuth in
             // Show paywall after login if not subscribed
             if isAuth && !storeKit.isSubscribed {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
