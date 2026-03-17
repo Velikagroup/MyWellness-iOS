@@ -1,0 +1,88 @@
+{
+  "identifier" : "MyWellness",
+  "nonConsumableProducts" : [],
+  "nonRenewingSubscriptionProducts" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "1234567890",
+    "_developerTeamID" : "YOURTEAMID",
+    "_prefix" : "com.mywellness",
+    "storefront" : "ITA",
+    "locale" : "it_IT"
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "20000001",
+      "localizations" : [],
+      "name" : "MyWellness Premium",
+      "subscriptions" : [
+        {
+          "adHocOfferCodesEnabled" : true,
+          "displayPrice" : "9.99",
+          "familySharable" : false,
+          "groupNumber" : 1,
+          "internalID" : "10000001",
+          "introductoryOffer" : {
+            "displayPrice" : "0.00",
+            "offerID" : "com.mywellness.trial.monthly",
+            "paymentMode" : "FREE_TRIAL",
+            "period" : "3_DAY",
+            "periodCount" : 1
+          },
+          "localizations" : [
+            {
+              "description" : "Full access to all MyWellness features, billed monthly.",
+              "displayName" : "Monthly",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "Accesso completo a tutte le funzionalità di MyWellness, fatturato mensilmente.",
+              "displayName" : "Mensile",
+              "locale" : "it_IT"
+            }
+          ],
+          "productID" : "com.mywellness.subscription.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly Premium",
+          "subscriptionGroupID" : "20000001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOfferCodesEnabled" : true,
+          "displayPrice" : "49.99",
+          "familySharable" : false,
+          "groupNumber" : 2,
+          "internalID" : "10000002",
+          "introductoryOffer" : {
+            "displayPrice" : "0.00",
+            "offerID" : "com.mywellness.trial.annual",
+            "paymentMode" : "FREE_TRIAL",
+            "period" : "3_DAY",
+            "periodCount" : 1
+          },
+          "localizations" : [
+            {
+              "description" : "Full access to all MyWellness features, billed annually.",
+              "displayName" : "Annual",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "Accesso completo a tutte le funzionalità di MyWellness, fatturato annualmente.",
+              "displayName" : "Annuale",
+              "locale" : "it_IT"
+            }
+          ],
+          "productID" : "com.mywellness.subscription.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Annual Premium",
+          "subscriptionGroupID" : "20000001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}
