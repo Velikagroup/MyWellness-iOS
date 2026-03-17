@@ -196,7 +196,7 @@ struct SubscriptionPaywallView: View {
     // MARK: - Helpers
 
     private func annualPerMonth(_ product: Product) -> String? {
-        guard let price = product.price as Decimal? else { return nil }
+        let price = product.price
         let monthly = (price / 12)
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency

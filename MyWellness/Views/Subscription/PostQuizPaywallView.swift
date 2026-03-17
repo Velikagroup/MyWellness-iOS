@@ -374,7 +374,7 @@ struct TimelineStep: View {
                 appeared = isActive
             }
         }
-        .onChange(of: isActive) { appeared = $0 }
+        .onChange(of: isActive) { _, newValue in appeared = newValue }
     }
 }
 
@@ -401,7 +401,7 @@ struct TimelineConnector: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + delay) { progress = 1 }
                 }
             }
-            .onChange(of: animated) { if $0 { progress = 1 } }
+            .onChange(of: animated) { _, newValue in if newValue { progress = 1 } }
     }
 }
 
@@ -517,7 +517,7 @@ struct TestimonialCard: View {
                 }
             }
 
-            Text(""\(testimonial.text)"")
+            Text("\"" + testimonial.text + "\"")
                 .font(.subheadline)
                 .foregroundColor(Color(hex: "333333"))
                 .fixedSize(horizontal: false, vertical: true)
@@ -599,18 +599,18 @@ struct FAQRow: View {
 
 extension PostQuizPaywallView {
     var testimonials: [TestimonialData] { [
-        TestimonialData(name: "Maria Santos",   role: "Studentessa Universitaria", initials: "MS",
-            text: "Con il budget da studentessa non potevo permettermi un nutrizionista. MyWellness mi ha creato un piano alimentare economico e completo."),
-        TestimonialData(name: "Luca Moretti",   role: "Personal Trainer",          initials: "LM",
-            text: "L'analisi fotografica AI è impressionante — rileva progressi che io stesso fatico a notare."),
-        TestimonialData(name: "Anna Bianchi",   role: "Insegnante",                initials: "AB",
-            text: "In 6 mesi sono tornata a 58kg. L'app ha capito che avevo poco tempo con il neonato."),
-        TestimonialData(name: "Thomas Weber",   role: "Software Engineer",         initials: "TW",
-            text: "L'approccio scientifico mi ha conquistato. Dashboard con BMR, massa grassa, proiezioni peso..."),
-        TestimonialData(name: "Francesca M.",   role: "Farmacista",                initials: "FM",
-            text: "Soffro di ipotiroidismo e perdere peso è sempre stato un incubo. -12kg in 6 mesi senza soffrire."),
-        TestimonialData(name: "Luca Colombo",   role: "CEO Startup Tech",          initials: "LC",
-            text: "Ho perso 14kg in 4 mesi e i miei livelli di energia sono triplicati."),
+        TestimonialData(name: "Maria Santos",   role: "Studentessa Universitaria",
+            text: "Con il budget da studentessa non potevo permettermi un nutrizionista. MyWellness mi ha creato un piano alimentare economico e completo.", initials: "MS"),
+        TestimonialData(name: "Luca Moretti",   role: "Personal Trainer",
+            text: "L'analisi fotografica AI è impressionante — rileva progressi che io stesso fatico a notare.", initials: "LM"),
+        TestimonialData(name: "Anna Bianchi",   role: "Insegnante",
+            text: "In 6 mesi sono tornata a 58kg. L'app ha capito che avevo poco tempo con il neonato.", initials: "AB"),
+        TestimonialData(name: "Thomas Weber",   role: "Software Engineer",
+            text: "L'approccio scientifico mi ha conquistato. Dashboard con BMR, massa grassa, proiezioni peso...", initials: "TW"),
+        TestimonialData(name: "Francesca M.",   role: "Farmacista",
+            text: "Soffro di ipotiroidismo e perdere peso è sempre stato un incubo. -12kg in 6 mesi senza soffrire.", initials: "FM"),
+        TestimonialData(name: "Luca Colombo",   role: "CEO Startup Tech",
+            text: "Ho perso 14kg in 4 mesi e i miei livelli di energia sono triplicati.", initials: "LC"),
     ] }
 
     var faqs: [FAQData] { [
